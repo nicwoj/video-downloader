@@ -27,10 +27,10 @@ def download_video():
         for line in link.splitlines():
             yt = YouTube(line)
 
-            if(choice == choices[0]): # highest quality
-                select = yt.streams.filter(progressive=True).first()
-            elif(choice == choices[1]):
+            if(choice == choices[0]): # 720p
                 select = yt.streams.filter(progressive=True, file_extension="mp4").last()
+            elif(choice == choices[1]): # 360p
+                select = yt.streams.filter(progressive=True).first()
             elif(choice == choices[2]): # only audio
                 select = yt.streams.filter(only_audio=True).first()
             else:
@@ -74,7 +74,7 @@ error_label_loc.grid()
 # video quality choices
 quality_label = Label(root, text="Select quality:")
 quality_label.grid()
-choices = ["Highest Quality Available", "720p", "Audio Only"]
+choices = ["720p", "360p", "Audio Only"]
 choices_combo = ttk.Combobox(root, width=25, values=choices)
 choices_combo.grid()
 
