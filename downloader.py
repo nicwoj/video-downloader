@@ -5,8 +5,8 @@ from pytube import YouTube
 
 folder_path = ""
 WINDOW_TITLE = "Video Downloader"
-WINDOW_WIDTH = 350
-WINDOW_HEIGHT = 230
+WINDOW_WIDTH = 390
+WINDOW_HEIGHT = 300
 
 # used for getting save folder location
 def open_location():
@@ -20,22 +20,24 @@ def open_location():
 
 # used to download the video
 def download_video():
-    choice = choices_combo.get()    # get user's video quality choice
-    link = link_entry.get()         # get user's link entry
+    choice = choices_combo.get()            # get user's video quality choice
+    link = link_entry.get("1.0", "end-1c")  # get user's link entry
 
     if(len(link) > 1):
-        yt = YouTube(link)
+        for line in link.splitlines():
+            yt = YouTube(line)
 
-        if(choice == choices[0]): # highest quality
-            select = yt.streams.filter(progressive=True).first()
-        elif(choice == choices[1]): # lowest quality
-            select = yt.streams.filter(progressive=True, file_extension="mp4").last()
-        elif(choice == choices[2]): # only audio
-            select = yt.streams.filter(only_audio=True).first()
-        else:
-            error_label.config(text="Enter link again:", fg="red")
-    
-        select.download(folder_path) # download to specified folder
+            if(choice == choices[0]): # highest quality
+                select = yt.streams.filter(progressive=True).first()
+            elif(choice == choices[1]):
+                select = yt.streams.filter(progressive=True, file_extension="mp4").last()
+            elif(choice == choices[2]): # only audio
+                select = yt.streams.filter(only_audio=True).first()
+            else:
+                error_label.config(text="Enter link again:", fg="red")
+        
+            select.download(folder_path) # download to specified folder
+
         error_label.config(text="Download Complete", fg="green")
     else:
         error_label.config(text="Enter URL again", fg="red")
@@ -48,10 +50,10 @@ root.columnconfigure(0, weight=1)                               # center content
 #root.configure(bg="")  # window background color 
 
 # link label and entry
-link_label = Label(root, text="Enter URL to download:")
+link_label = Label(root, text="Enter URLs to download:")
 link_label.grid()
 entryVar = StringVar()
-link_entry = Entry(root, width=50, textvariable=entryVar)
+link_entry = Text(root, width=45, height=5)
 link_entry.grid()
 
 # error msg 1
@@ -72,7 +74,7 @@ error_label_loc.grid()
 # video quality choices
 quality_label = Label(root, text="Select quality:")
 quality_label.grid()
-choices = ["Highest Quality Available", "Lowest Quality Available", "Audio Only"]
+choices = ["Highest Quality Available", "720p", "Audio Only"]
 choices_combo = ttk.Combobox(root, width=25, values=choices)
 choices_combo.grid()
 
