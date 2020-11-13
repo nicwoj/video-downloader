@@ -1,1 +1,5 @@
+beautifulsoup4==4.9.3
+lxml==4.6.1
 pytube @ git+https://github.com/nficano/pytube@1d9ce0cfbef0f2290fd2500444b3338430b251c8
+requests==2.24.0
+urllib3==1.25.11

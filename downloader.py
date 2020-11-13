@@ -2,8 +2,11 @@ from tkinter import *
 from tkinter import ttk # dropdown
 from tkinter import filedialog # file download location
 from pytube import YouTube
+from bs4 import BeautifulSoup
+import requests
+import re
+import json
 
-folder_path = ""
 WINDOW_TITLE = "Video Downloader"
 WINDOW_WIDTH = 390
 WINDOW_HEIGHT = 300
@@ -24,21 +27,33 @@ def download_video():
     link = link_entry.get("1.0", "end-1c")  # get user's link entry
 
     if(len(link) > 1):
-        for line in link.splitlines():
-            yt = YouTube(line)
+        if("youtu" in link[0:20]):    # YouTube video 
+            for line in link.splitlines():
+                yt = YouTube(line)
 
-            if(choice == choices[0]): # 720p
-                select = yt.streams.filter(progressive=True, file_extension="mp4").last()
-            elif(choice == choices[1]): # 360p
-                select = yt.streams.filter(progressive=True).first()
-            elif(choice == choices[2]): # only audio
-                select = yt.streams.filter(only_audio=True).first()
-            else:
-                error_label.config(text="Enter link again:", fg="red")
-        
-            select.download(folder_path) # download to specified folder
+                if(choice == choices[0] or choice == choices[3]): # 720p or Default
+                    select = yt.streams.filter(progressive=True, file_extension="mp4").last()
+                elif(choice == choices[1]): # 360p
+                    select = yt.streams.filter(progressive=True).first()
+                elif(choice == choices[2]): # only audio
+                    select = yt.streams.filter(only_audio=True).first()
+                else:
+                    error_label.config(text="Enter URL again:", fg="red")
+            
+                select.download(folder_path) # download to specified folder
 
-        error_label.config(text="Download Complete", fg="green")
+            error_label.config(text="Download Complete", fg="green")
+        else:   # not a YouTube video
+            result = requests.get(link, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:82.0) \
+                Gecko/20100101 Firefox/82.0"}).content
+
+            soup = BeautifulSoup(result, "html.parser")
+            script = str(soup.find_all('script'))
+            pattern = re.compile(r"https:\/\/ssrweb\.zoom\.us\/cmr\/replay\/.*")
+            result = pattern.search(script)
+            group = result.group(0)[:-2] # extracts video link
+            print(group)
+    
     else:
         error_label.config(text="Enter URL again", fg="red")
 
@@ -74,7 +89,7 @@ error_label_loc.grid()
 # video quality choices
 quality_label = Label(root, text="Select quality:")
 quality_label.grid()
-choices = ["720p", "360p", "Audio Only"]
+choices = ["720p", "360p", "Audio Only", "Default"]
 choices_combo = ttk.Combobox(root, width=25, values=choices)
 choices_combo.grid()
 
