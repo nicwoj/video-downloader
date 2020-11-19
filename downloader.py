@@ -1,6 +1,6 @@
 from tkinter import *
-from tkinter import ttk # dropdown
-from tkinter import filedialog # file download location
+from tkinter import ttk
+from tkinter import filedialog
 from pytube import YouTube
 from bs4 import BeautifulSoup
 import requests
@@ -21,7 +21,28 @@ def open_location():
     else:
         error_label_loc.config(text="Choose a location to save the file:", fg="red")
 
-# used to download the video
+def get_video(link):
+    result = requests.get(link, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:82.0) \
+        Gecko/20100101 Firefox/82.0"}).content
+
+    soup = BeautifulSoup(result, "html.parser")
+    script = str(soup.find_all('script'))
+    pattern = re.compile(r"https:\/\/ssrweb\.zoom\.us\/cmr\/replay\/.*")
+    result = pattern.search(script)
+    video = result.group(0)[:-2] # extracts video link
+    #print("full link: ", video)
+    return video
+
+# combines the chosen folder path with the file name
+def set_folder_path(folder_path, link):
+    video_link = get_video(link)                    # extracts the link
+    result = re.search("GMT.*?(.mp4)", video_link)  # extracts file name from link
+    file_name = result.group(0)
+    #file_name = result.group(0)[:-4]               # removes .mp4 from the end
+    path = folder_path + "/" + file_name
+    return path
+
+# downloads the video
 def download_video():
     choice = choices_combo.get()            # get user's video quality choice
     link = link_entry.get("1.0", "end-1c")  # get user's link entry
@@ -44,16 +65,16 @@ def download_video():
 
             error_label.config(text="Download Complete", fg="green")
         else:   # not a YouTube video
-            result = requests.get(link, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:82.0) \
-                Gecko/20100101 Firefox/82.0"}).content
-
-            soup = BeautifulSoup(result, "html.parser")
-            script = str(soup.find_all('script'))
-            pattern = re.compile(r"https:\/\/ssrweb\.zoom\.us\/cmr\/replay\/.*")
-            result = pattern.search(script)
-            group = result.group(0)[:-2] # extracts video link
-            print(group)
-    
+            response = requests.get(link, stream=True)
+            folder = set_folder_path(folder_path, link)
+            with open(folder, "wb") as f:
+                for chunk in response.iter_content(chunk_size = 1024):
+                    print("test1")
+                    if chunk:
+                        f.write(chunk)
+                        print("test2")
+                    else:
+                        print("err")
     else:
         error_label.config(text="Enter URL again", fg="red")
 
